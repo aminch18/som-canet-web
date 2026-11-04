@@ -1,0 +1,6 @@
+---
+import {routeFor,mediaUrl,type ContentDoc} from '../lib/content';import {withBase} from '../lib/urls';
+interface Props {doc:ContentDoc;category?:string;}
+const {doc,category}=Astro.props;const image=mediaUrl(doc.cover);const date=doc.publishedAt?.slice(0,10);
+---
+<a class="archive-card" href={withBase(routeFor(doc))} data-category={category||doc.category||doc.section||'documents'}>{image&&<img class="thumb" src={withBase(image)} alt={doc.cover?.alt||''} loading="lazy" width="600" height="400"/>}<div class="card-bottom"><div>{date?<time datetime={date}>{new Date(date).toLocaleDateString('ca-ES',{timeZone:'UTC'})}</time>:<span class="muted">{doc.historical?'Arxiu històric':'SOM CANET'}</span>}<h3>{doc.title}</h3>{doc.summary&&<p>{doc.summary.slice(0,150)}</p>}</div><span aria-hidden="true">→</span></div></a>

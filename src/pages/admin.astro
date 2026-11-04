@@ -1,0 +1,4 @@
+---
+import Layout from '../layouts/Layout.astro';const studio=import.meta.env.PUBLIC_STUDIO_URL;
+---
+<Layout title="Gestió de continguts" noindex><section class="page-heading wrap"><p class="eyebrow">SOM CANET</p><h1>Gestió de continguts</h1><p class="lead">Notícies, pàgines, persones i documents.</p></section><section class="wrap section"><div class="prose">{studio?<><p>Accedeix al panell de Sanity amb el teu compte autoritzat.</p><a class="button" href={studio}>Obre el panell de continguts →</a></>:<><p>El panell de Sanity està preparat al projecte, però encara cal connectar-lo a un compte i un projecte reals.</p><p>Aquesta vista del prototip utilitza el contingut migrat localment. Encara no permet publicar canvis des d’un panel.</p></>}</div></section></Layout>

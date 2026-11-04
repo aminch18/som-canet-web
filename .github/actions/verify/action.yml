@@ -1,0 +1,26 @@
+name: Verify and build
+description: Run the shared checks and generate the deployable Astro site
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v7.1.0
+      with:
+        node-version: '22'
+        cache: npm
+        cache-dependency-path: package-lock.json
+    - name: Install locked dependencies
+      shell: bash
+      run: npm ci --no-audit --no-fund
+    - name: Check Astro, TypeScript and Studio
+      shell: bash
+      run: npm run check
+    - name: Test content and publishing
+      shell: bash
+      run: npm test
+    - name: Build site
+      shell: bash
+      run: npm run build
+    - name: Validate generated pages, assets and SEO
+      shell: bash
+      run: npm run validate:build

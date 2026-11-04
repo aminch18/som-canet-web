@@ -1,0 +1,29 @@
+---
+import '../styles/global.css';
+import {getContent,settingsOf,mediaUrl,isIndexable,type ContentDoc} from '../lib/content';
+import {withBase} from '../lib/urls';
+import {jsonLd} from '../lib/render';
+interface Props {title:string;description?:string;section?:string;doc?:ContentDoc;noindex?:boolean;schema?:any;}
+const {title,description,section,doc,noindex=false,schema}=Astro.props;
+const docs=await getContent();const settings=settingsOf(docs);
+const fullTitle=(doc?.seo?.title||title)+(title==='SOM CANET'?'':' · SOM CANET');
+const desc=doc?.seo?.description||description||doc?.summary||settings.seo?.description||'';
+const canonical=new URL(Astro.url.pathname,Astro.site).href;
+const indexable=isIndexable()&&!noindex&&!doc?.seo?.noindex;
+const image=doc?.seo?.imageUrl||mediaUrl(doc?.cover)||mediaUrl(settings.homeImage);
+const ogImage=image?new URL(withBase(image),Astro.site).href:undefined;
+const nav=[['projecte','El projecte'],['grup-municipal','Grup municipal'],['revista','La revista'],['arxiu','Arxiu'],['participa','Participa'],['contacte','Contacte']];
+const breadcrumbs={'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Inici',item:new URL(withBase('/'),Astro.site).href},{'@type':'ListItem',position:2,name:title,item:canonical}]};
+const organization={'@context':'https://schema.org','@type':'Organization',name:settings.title,url:new URL(withBase('/'),Astro.site).href,logo:new URL(withBase(mediaUrl(settings.logo)),Astro.site).href};
+---
+<!doctype html><html lang="ca"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#432359"/>
+<title>{fullTitle}</title><meta name="description" content={desc}/><link rel="canonical" href={canonical}/><meta name="robots" content={indexable?'index,follow':'noindex,follow'}/>
+<meta property="og:type" content={doc?._type==='post'?'article':'website'}/><meta property="og:title" content={fullTitle}/><meta property="og:description" content={desc}/><meta property="og:url" content={canonical}/><meta property="og:locale" content="ca_ES"/><meta property="og:site_name" content="SOM CANET"/>{ogImage&&<meta property="og:image" content={ogImage}/>}
+<meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content={fullTitle}/><meta name="twitter:description" content={desc}/>{ogImage&&<meta name="twitter:image" content={ogImage}/>}
+<link rel="icon" href={withBase('/assets/favicon.svg')} type="image/svg+xml"/>
+<script type="application/ld+json" set:html={jsonLd(organization)}/>{Astro.url.pathname!==withBase('/')&&<script type="application/ld+json" set:html={jsonLd(breadcrumbs)}/>}{schema&&<script type="application/ld+json" set:html={jsonLd(schema)}/>}
+</head><body><a class="skip-link" href="#contingut">Salta al contingut</a><div class="utility"><div class="wrap"><span>CANET DE MAR · EL MARESME</span><a href={withBase('/contacte/')}>Tens una pregunta? Parlem-ne →</a></div></div><header class="header"><div class="wrap nav-wrap"><a class="brand" href={withBase('/')} aria-label="SOM CANET, inici"><img src={withBase(mediaUrl(settings.logo))} alt="SOM CANET" width="139" height="98"/></a><button class="menu-toggle" aria-expanded="false" aria-controls="navigation">Menú <span aria-hidden="true">☰</span></button><nav id="navigation" aria-label="Navegació principal">{nav.map(([slug,label])=><a href={withBase(`/${slug}/`)} aria-current={section===slug?'page':undefined}>{label}</a>)}</nav></div></header>
+<main id="contingut">{Astro.url.pathname!==withBase('/')&&<div class="wrap breadcrumb"><a href={withBase('/')}>Inici</a><span aria-hidden="true">/</span><span>{title}</span></div>}<slot/></main>
+<footer><div class="wrap footer-main"><a class="brand" href={withBase('/')} aria-label="SOM CANET, inici"><img src={withBase(mediaUrl(settings.logo))} alt="SOM CANET" width="139" height="98" loading="lazy"/></a><p>{settings.tagline}<br/><span>Canet de Mar · El Maresme</span></p><a class="text-link" href={withBase('/contacte/')}>Parlem-ne →</a></div><div class="wrap footer-bottom"><span>SOM CANET · Prototip de renovació</span><details class="credits"><summary>Fonts i crèdits</summary><p>Continguts i imatges de la web històrica de SOM CANET, amb el seu context original. La participació i la interfície són propostes del redisseny.</p><p>Panoràmica: <a href="https://commons.wikimedia.org/wiki/File:Canet_214.JPG">Canet 214, pujada per Ramonga93</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>. Fotografia redimensionada i enquadrada.</p></details><span><a href={withBase('/historia/')}>Història</a> · <a href={withBase('/equip/')}>Qui és qui</a> · <a href={withBase('/videos/')}>Vídeos</a></span></div></footer>
+<script>import '../scripts/site.js';</script>
+</body></html>

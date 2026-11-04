@@ -1,0 +1,38 @@
+{
+  "name": "som-canet-web",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "workspaces": [
+    "studio"
+  ],
+  "scripts": {
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev --host 127.0.0.1 --port 4321",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview --host 127.0.0.1 --port 4321",
+    "check": "ASTRO_TELEMETRY_DISABLED=1 astro check && tsc --noEmit -p studio/tsconfig.json",
+    "test": "node --test tests/*.test.mjs",
+    "validate:build": "node scripts/validate-build.mjs",
+    "studio": "npm run dev --workspace studio",
+    "studio:build": "npm run build --workspace studio",
+    "content:import": "node --env-file-if-exists=.env scripts/import-sanity.mjs"
+  },
+  "dependencies": {
+    "astro": "6.4.8",
+    "@astrojs/sitemap": "^3.6.0",
+    "@sanity/client": "8.14.1",
+    "@portabletext/to-html": "^3.0.0",
+    "sanitize-html": "^2.17.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "@portabletext/block-tools": "^3.0.0",
+    "@types/sanitize-html": "^2.16.0",
+    "typescript": "^5.9.3",
+    "jsdom": "^26.1.0",
+    "@sanity/schema": "4.22.1"
+  }
+}

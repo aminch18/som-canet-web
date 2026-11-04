@@ -1,0 +1,8 @@
+---
+import {withBase} from '../lib/urls';import type {ContentDoc} from '../lib/content';
+interface Props {doc:ContentDoc;}
+const {doc}=Astro.props;const pages=(doc.pages||[]).map(withBase);const pdf=withBase(doc.pdfUrl||doc.pdfPath||'');
+---
+<div class="pdf-links"><a class="button" href={pdf} target="_blank" rel="noopener noreferrer">Obre el PDF original ↗</a><a class="button green" href={pdf} download>Descarrega el PDF ↓</a></div>
+{pages.length>0?<div class="pdf-reader" data-pages={JSON.stringify(pages)}><div class="reader-toolbar"><button class="reader-prev" type="button" disabled aria-label="Pàgina anterior">←</button><label>Tria la pàgina <select class="reader-select">{pages.map((_,i)=><option value={i}>Pàgina {i+1}</option>)}</select></label><button class="reader-next" type="button" disabled={pages.length===1} aria-label="Pàgina següent">→</button><span class="reader-status" role="status">Pàgina 1 de {pages.length}</span></div><div class="reader-stage"><a class="reader-enlarge" href={pages[0]} target="_blank" rel="noopener noreferrer"><img class="reader-image" src={pages[0]} alt={`${doc.title} · Pàgina 1`} data-document-title={doc.title} loading="lazy"/></a></div><p class="reader-help">Selecciona una pàgina o utilitza les fletxes. Prem sobre la imatge per ampliar-la.</p></div>:<iframe class="pdf-viewer" src={pdf} title={doc.title} loading="lazy"/>}
+{doc.transcript&&<details class="document-transcript"><summary>Llegeix el text del document <span aria-hidden="true">+</span></summary><p class="muted">Text extret del PDF. Consulta el visor per veure la composició original.</p><div class="prose pdf-transcript">{doc.transcript}</div></details>}

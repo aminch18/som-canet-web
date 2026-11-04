@@ -1,0 +1,62 @@
+name: Publish to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  repository_dispatch:
+    types: [sanity-published]
+permissions:
+  contents: read
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    name: Verify and package
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: read
+    env:
+      ASTRO_TELEMETRY_DISABLED: '1'
+      CONTENT_SOURCE: ${{ vars.CONTENT_SOURCE || 'local' }}
+      SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+      SANITY_DATASET: ${{ vars.SANITY_DATASET || 'production' }}
+      SANITY_READ_TOKEN: ${{ secrets.SANITY_READ_TOKEN }}
+      PUBLIC_STUDIO_URL: ${{ vars.PUBLIC_STUDIO_URL }}
+      PUBLIC_INDEXABLE: ${{ vars.PUBLIC_INDEXABLE || 'false' }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Configure Pages
+        uses: actions/configure-pages@v6.0.0
+        id: pages
+      - name: Configure canonical URL and repository path
+        env:
+          PAGES_SITE_URL: ${{ steps.pages.outputs.origin }}
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: node scripts/github-pages-env.mjs
+      - uses: ./.github/actions/verify
+      - name: Package Pages artifact
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: dist
+  deploy:
+    name: Deploy verified site
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish
+        id: deployment
+        uses: actions/deploy-pages@v5.0.1
