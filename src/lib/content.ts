@@ -2,35 +2,52 @@ import {createClient} from '@sanity/client';
 import fixture from '../../data/content.json';
 import {readFile} from 'node:fs/promises';
 export interface Media { _type?:string; localPath?:string; url?:string; alt?:string; caption?:string; image?:unknown }
+export type EditorialBlock =
+ | {_key:string; _type:'textSection'; title?:string; text?:any[]}
+ | {_key:string; _type:'imageSection'; photo?:Media}
+ | {_key:string; _type:'actionSection'; title?:string; description?:string; label?:string; href?:string};
 export interface ContentDoc {
+ blocks?:EditorialBlock[];
  _id:string; _type:string; title?:string; name?:string; slug?:{current:string}; summary?:string; body?:any[]; bio?:any[];
  section?:string; category?:string; publishedAt?:string; historical?:boolean; legacyPath?:string; sourceUrl?:string;
  cover?:Media; gallery?:Media[]; portrait?:Media; logo?:Media; homeImage?:Media;
  documents?:{_ref:string}[]; faqs?:{question:string;answer:string}[]; order?:number; role?:string;
  file?:{asset?:{_ref?:string}}; renderedFileRef?:string; pdfPath?:string; pdfUrl?:string; pages?:string[]; transcript?:string; description?:string; youtubeId?:string;
  seo?:{title?:string;description?:string;noindex?:boolean;imageUrl?:string};
+ homeDirectoryTitle?:string; homeDirectoryIntro?:string; homeParticipationTitle?:string; homeParticipationIntro?:string;
  tagline?:string;homeTitle?:string;homeIntro?:string;contactEmail?:string;contactPhone?:string;
 }
 let loading:Promise<ContentDoc[]> | undefined;
 const projectId=import.meta.env.SANITY_PROJECT_ID || process.env.SANITY_PROJECT_ID;
 const dataset=import.meta.env.SANITY_DATASET || process.env.SANITY_DATASET || 'production';
 export function getContent():Promise<ContentDoc[]> {
- if(!loading) loading=(async()=>{
-  const mode=import.meta.env.CONTENT_SOURCE || process.env.CONTENT_SOURCE || 'local';
+ return loading ??= loadContent(false);
+}
+export function requestContent(locals: App.Locals):Promise<ContentDoc[]> {
+ if (import.meta.env.EDITOR_PREVIEW !== 'true') return getContent();
+ return locals.editorContent ??= loadContent(locals.editorPreview === true);
+}
+async function loadContent(drafts:boolean):Promise<ContentDoc[]> {
+  const mode=drafts ? 'sanity' : import.meta.env.CONTENT_SOURCE || process.env.CONTENT_SOURCE || 'local';
   if(!['local','sanity'].includes(mode))throw new Error('CONTENT_SOURCE must be local or sanity');
   let docs:ContentDoc[];
   if(mode==='local') docs=process.env.CONTENT_FIXTURE ? JSON.parse(await readFile(process.env.CONTENT_FIXTURE,'utf8')) : fixture as ContentDoc[];
   else {
    if(!projectId)throw new Error('CONTENT_SOURCE=sanity requires SANITY_PROJECT_ID');
-   const client=createClient({projectId,dataset,apiVersion:'2026-11-01',useCdn:false,perspective:'published',token:import.meta.env.SANITY_READ_TOKEN || process.env.SANITY_READ_TOKEN});
-   docs=await client.fetch(`*[_type in ["page","post","person","publication","video","siteSettings"] && !(_id in path("drafts.**"))]{...,
+   const client=createClient({projectId,dataset,apiVersion:'2026-11-01',useCdn:false,perspective:drafts?'drafts':'published',token:drafts ? process.env.SANITY_PREVIEW_TOKEN : import.meta.env.SANITY_READ_TOKEN || process.env.SANITY_READ_TOKEN});
+   docs=await client.fetch(`*[_type in ["page","post","person","publication","video","siteSettings"] ]{...,
     cover{...,"url":image.asset->url}, portrait{...,"url":image.asset->url},logo{...,"url":image.asset->url},homeImage{...,"url":image.asset->url},
-    gallery[]{...,"url":image.asset->url},"pdfUrl":file.asset->url,seo{...,"imageUrl":image.asset->url}
+    blocks[]{...,photo{...,"url":image.asset->url}},gallery[]{...,"url":image.asset->url},"pdfUrl":file.asset->url,seo{...,"imageUrl":image.asset->url}
    }`);
   }
   docs=docs.filter(doc=>!doc._id.startsWith('drafts.'));
   // A replaced PDF must never display the old rendered pages or extracted text.
   docs=docs.map(doc=>doc._type==='publication' && doc.renderedFileRef && doc.file?.asset?._ref!==doc.renderedFileRef ? {...doc,pages:[],transcript:''} : doc);
+  if(drafts){
+   // New drafts can lack a slug or title until the editor fills it in.
+   return docs.filter(doc=>!['page','post','publication'].includes(doc._type) ||
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(doc.slug?.current || ''));
+  }
   const settings=docs.find(d=>d._type==='siteSettings');
   if(!settings?.title)throw new Error('Missing site settings. Import the migrated content before enabling Sanity.');
   const paths=new Set<string>();
@@ -40,8 +57,6 @@ export function getContent():Promise<ContentDoc[]> {
    if(doc._type==='page' && ['index','arxiu','admin'].includes(doc.slug.current))throw new Error(`Reserved route: ${route}`);
   }
   return docs;
- })();
- return loading;
 }
 export const routeFor=(doc:ContentDoc)=>doc._type==='post'?`/articles/${doc.slug?.current}/`:doc._type==='publication'?`/documents/${doc.slug?.current}/`:`/${doc.slug?.current}/`;
 export const posts=(docs:ContentDoc[])=>docs.filter(d=>d._type==='post').sort((a,b)=>(b.publishedAt||'').localeCompare(a.publishedAt||''));

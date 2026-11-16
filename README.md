@@ -4,7 +4,9 @@ Prototipo multipágina preparado para evolucionar a la web definitiva. Astro gen
 
 ## Estado real
 
-La web funciona y compila con una copia local del contenido migrado. El proyecto de Sanity **todavía no está creado ni conectado**: no hay un panel remoto operativo ni se ha subido contenido a una cuenta externa. El código del Studio, los modelos y la importación están preparados. El código se publica en https://github.com/aminch18/som-canet-web y el prototipo se sirve en https://aminch18.github.io/som-canet-web/. El estado de cada publicación se consulta en Actions.
+La web compila con una copia local de 78 documentos. El proyecto de prueba de Sanity se creó, recibió la migración inicial y contó con un [Studio alojado](https://aminch18somcanetprev.sanity.studio/). La edición visual se probó en local. Los cambios más recientes del editor están en la copia de trabajo y deben revisarse y versionarse antes de desplegarlos.
+
+[GitHub Pages](https://aminch18.github.io/som-canet-web/) es la referencia del prototipo con la copia local. La conexión de la web pública a Sanity, el webhook de Cloudflare Pages y la vista previa alojada siguen pendientes. Consulta el [plan de salida y entrega](SANITY_SETUP.md#salida-y-entrega).
 
 ## Arranque
 
@@ -83,7 +85,7 @@ El prototipo arranca con **noindex**. Para la web definitiva, configura `SITE_UR
 
 Consulta `SANITY_SETUP.md`. Los ejemplos de variables están en `.env.example` y `studio/.env.example`. No pegues tokens ni contraseñas en el chat ni los guardes en el código.
 
-El comando de importación es una simulación salvo que se añada explícitamente `--apply`. Conserva los IDs para no duplicar contenido y deja sin modificar los registros que ya existen. Si se sustituye un PDF, las páginas renderizadas y el texto extraído anterior dejan de mostrarse; el PDF nuevo sigue accesible.
+El comando de importación es una simulación salvo que se añada explícitamente `--apply`. Usa `--check-target` para revisar el destino sin escribir. La importación conserva los IDs y los documentos publicados existentes, y se detiene ante conflictos con borradores o versiones pendientes. Si se sustituye un PDF, las páginas renderizadas y el texto extraído anterior dejan de mostrarse; el PDF nuevo sigue accesible.
 
 ## GitHub Pages y otro alojamiento
 

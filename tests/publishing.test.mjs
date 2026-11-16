@@ -6,6 +6,13 @@ test('new content builds its own route, homepage, archive, SEO and sitemap under
   const docs=JSON.parse(await fs.readFile(path.join(root,'data/content.json'),'utf8'));
   const post={_id:'editorial-test',_type:'post',title:'Una notícia nova de prova',slug:{current:'noticia-nova-de-prova'},summary:'Resum editorial de prova',publishedAt:'2026-11-04T12:00:00Z',historical:false,category:'actualitat',body:[{_type:'block',_key:'p1',style:'normal',markDefs:[{_type:'link',_key:'unsafe',href:'javascript:alert(1)'}],children:[{_type:'span',_key:'s1',text:'Text editorial sense tocar cap plantilla.',marks:['unsafe']}]}]};
   const replaced=docs.find(d=>d._type==='publication');replaced.file={asset:{_ref:'file-new'}};replaced.renderedFileRef='file-old';
+  const settings=docs.find(doc=>doc._type==='siteSettings');
+  settings.blocks=[
+   {_type:'textSection',_key:'intro',title:'Bloc editorial de prova',text:post.body},
+   {_type:'imageSection',_key:'photo',photo:settings.homeImage},
+   {_type:'actionSection',_key:'action',title:'Contacta',label:'Parlem',href:'/contacte/'},
+   {_type:'actionSection',_key:'unsafe',label:'Unsafe',href:'javascript:alert(1)'},
+  ];
   docs.push(post,{...post,_id:'drafts.hidden-test',slug:{current:'unpublished-article'},title:'Unpublished draft'}, {_id:'new-page-test',_type:'page',title:'Pàgina nova',slug:{current:'pagina-nova'},section:'projecte',summary:'Pàgina editable nova',body:post.body});
   const fixture=path.join(temp,'content.json');const out=path.join(temp,'dist');await fs.writeFile(fixture,JSON.stringify(docs));
   const result=spawnSync(process.execPath,[path.join(root,'node_modules/astro/bin/astro.mjs'),'build','--outDir',out],{cwd:root,encoding:'utf8',env:{...process.env,ASTRO_TELEMETRY_DISABLED:'1',CONTENT_SOURCE:'local',CONTENT_FIXTURE:fixture,SITE_URL:'https://example.org',BASE_PATH:'/som-canet/',PUBLIC_INDEXABLE:'true'}});
@@ -17,6 +24,12 @@ test('new content builds its own route, homepage, archive, SEO and sitemap under
   assert.equal(article.querySelector('meta[name=robots]').content,'index,follow');assert.equal(article.querySelectorAll('a[href^="javascript:"]').length,0);
   const schemas=[...article.querySelectorAll('script[type="application/ld+json"]')].map(s=>JSON.parse(s.textContent));assert(schemas.some(s=>s['@type']==='Article'));
   const home=await parse('index.html');assert(home.querySelector('main').textContent.includes(post.title));assert.equal(home.querySelector('.home-feed .eyebrow').textContent,'ACTUALITAT');
+  const blocks=home.querySelector('.editorial-blocks');
+  assert.equal(blocks.querySelector('h2').textContent,'Bloc editorial de prova');
+  assert.equal(blocks.querySelector('img').getAttribute('src'),'/som-canet/'+settings.homeImage.localPath.replace(/^\//,''));
+  assert.equal(blocks.querySelector('.button').getAttribute('href'),'/som-canet/contacte/');
+  assert.equal(blocks.querySelectorAll('.button').length,1);
+  assert.equal(home.querySelector('[data-sanity], [data-editor-preview]'),null);
   const archive=await parse('arxiu/index.html');assert(archive.querySelector('main').textContent.includes(post.title));
   assert((await fs.readFile(path.join(out,'sitemap-0.xml'),'utf8')).includes('/som-canet/articles/noticia-nova-de-prova/'));
   assert(!(await fs.readFile(path.join(out,'sitemap-0.xml'),'utf8')).includes('unpublished-article'));

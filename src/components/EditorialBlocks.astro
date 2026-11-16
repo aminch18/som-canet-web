@@ -1,0 +1,48 @@
+---
+import {mediaUrl,type ContentDoc} from '../lib/content';
+import {editorField} from '../lib/editor-field';
+import {renderBody} from '../lib/render';
+import {resolveLink,withBase} from '../lib/urls';
+
+interface Props {doc:ContentDoc; docs:ContentDoc[]; fullWidth?:boolean;}
+const {doc,docs,fullWidth=false}=Astro.props;
+const editable=(path:string)=>editorField(Astro.locals,doc,path);
+function actionHref(value:string | undefined) {
+ if (!value || /[\u0000-\u0020\u007f\\]/.test(value)) return undefined;
+ if (/^\/(?!\/)/.test(value) || /^https?:\/\//i.test(value)) return resolveLink(value,docs);
+}
+---
+{(doc.blocks?.length || Astro.locals.editorPreview) && <div class:list={['editorial-blocks', {'wrap':fullWidth}]} data-sanity={editable('blocks')}>
+ {doc.blocks?.map(block => {
+  const path = `blocks[_key=="${block._key}"]`;
+  const href = block._type==='actionSection' ? actionHref(block.href) : undefined;
+  return <section class="editorial-block" data-sanity={editable(path)}>
+   {block._type==='textSection' && <>
+    {block.title && <h2 data-sanity={editable(path+'.title')}>{block.title}</h2>}
+    <div class="prose" data-sanity={editable(path+'.text')} set:html={renderBody(block.text,docs)}/>
+   </>}
+   {block._type==='imageSection' && mediaUrl(block.photo) && <figure class="editorial-image" data-sanity={editable(path+'.photo')}>
+    <img src={withBase(mediaUrl(block.photo))} alt={block.photo?.alt || ''} loading="lazy"/>
+    {block.photo?.caption && <figcaption>{block.photo.caption}</figcaption>}
+   </figure>}
+   {block._type==='actionSection' && <>
+    {block.title && <h2 data-sanity={editable(path+'.title')}>{block.title}</h2>}
+    {block.description && <p data-sanity={editable(path+'.description')}>{block.description}</p>}
+    {block.label && href &&
+     <a class="button green" data-sanity={editable(path+'.href')} href={href}>{block.label}</a>}
+   </>}
+  </section>;
+ })}
+ {!doc.blocks?.length && Astro.locals.editorPreview && <p class="editorial-empty">Afegeix un bloc de contingut</p>}
+</div>}
+
+<style>
+ .editorial-blocks { display:grid; gap:1.5rem; }
+ .editorial-blocks.wrap { margin-block:2.5rem; }
+ .editorial-block { padding-block:1rem; }
+ .editorial-block h2 { margin-top:0; }
+ .editorial-image { margin:0; }
+ .editorial-image img { display:block; max-width:100%; height:auto; }
+ .editorial-image figcaption { margin-top:.5rem; }
+ .editorial-empty { padding:1rem; border:1px dashed currentColor; }
+</style>

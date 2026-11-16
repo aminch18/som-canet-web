@@ -21,18 +21,21 @@
     "content:import": "node --env-file-if-exists=.env scripts/import-sanity.mjs"
   },
   "dependencies": {
-    "astro": "6.4.8",
+    "@astrojs/node": "^10.1.4",
     "@astrojs/sitemap": "^3.6.0",
-    "@sanity/client": "8.14.1",
     "@portabletext/to-html": "^3.0.0",
+    "@sanity/client": "8.14.1",
+    "@sanity/preview-url-secret": "^4.1.5",
+    "@sanity/visual-editing": "^6.2.1",
+    "astro": "6.4.8",
     "sanitize-html": "^2.17.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.6",
     "@portabletext/block-tools": "^3.0.0",
+    "@sanity/schema": "4.22.1",
     "@types/sanitize-html": "^2.16.0",
-    "typescript": "^5.9.3",
     "jsdom": "^26.1.0",
-    "@sanity/schema": "4.22.1"
+    "typescript": "^5.9.3"
   }
 }

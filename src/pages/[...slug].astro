@@ -1,18 +1,24 @@
 ---
+import EditorialBlocks from '../components/EditorialBlocks.astro';
+import {editorField} from '../lib/editor-field';
 import Layout from '../layouts/Layout.astro';import PdfReader from '../components/PdfReader.astro';
-import {getContent,routeFor,mediaUrl,type ContentDoc} from '../lib/content';import {withBase} from '../lib/urls';import {renderBody} from '../lib/render';
+import {getContent,requestContent,routeFor,mediaUrl,type ContentDoc} from '../lib/content';import {withBase} from '../lib/urls';import {renderBody} from '../lib/render';
 export async function getStaticPaths(){const docs=await getContent();const special=new Set(['revista','equip','videos','contacte','participa']);return docs.filter(d=>d._type==='post'||d._type==='publication'||(d._type==='page'&&!special.has(d.slug!.current))).map(doc=>({params:{slug:routeFor(doc).replace(/^\/|\/$/g,'')},props:{doc}}));}
 interface Props {doc:ContentDoc;}
-const {doc}=Astro.props;const docs=await getContent();const section=doc._type==='post'||doc._type==='publication'?'arxiu':doc.section;
+const docs=await requestContent(Astro.locals);
+const doc=Astro.props.doc ?? docs.find(item=>['page','post','publication'].includes(item._type)
+ && routeFor(item)===`/${Astro.params.slug}/`);
+if(!doc) return new Response('Pàgina no trobada', {status:404});const section=doc._type==='post'||doc._type==='publication'?'arxiu':doc.section;
 const related=docs.filter(d=>d._type==='page'&&d.section===section&&d._id!==doc._id);
 const publications=(doc.documents||[]).map(r=>docs.find(d=>d._id===r._ref)).filter(Boolean) as ContentDoc[];
 const schema=doc._type==='post'?{'@context':'https://schema.org','@type':'Article',headline:doc.title,description:doc.summary,datePublished:doc.publishedAt,inLanguage:'ca',mainEntityOfPage:new URL(withBase(routeFor(doc)),Astro.site).href,publisher:{'@type':'Organization',name:'SOM CANET'},...(mediaUrl(doc.cover)?{image:new URL(withBase(mediaUrl(doc.cover)),Astro.site).href}:{})}:undefined;
 ---
-<Layout title={doc.title!} section={section} doc={doc} schema={schema}>
-<section class="page-heading wrap"><p class="eyebrow">{doc._type==='post'?(doc.category==='hemeroteca'?'HEMEROTECA':'ACTUALITAT'):doc._type==='publication'?'DOCUMENTS':section?.replace('-',' ').toUpperCase()}</p><h1>{doc.title}</h1>{doc.publishedAt&&<p class="muted">{new Date(doc.publishedAt).toLocaleDateString('ca-ES',{timeZone:'UTC',dateStyle:'long'})}</p>}{doc._type!=='post'&&doc.summary&&<p class="lead">{doc.summary}</p>}</section>
+<Layout title={doc.title || 'Sense títol'} section={section} doc={doc} schema={schema}>
+<section class="page-heading wrap"><p class="eyebrow">{doc._type==='post'?(doc.category==='hemeroteca'?'HEMEROTECA':'ACTUALITAT'):doc._type==='publication'?'DOCUMENTS':section?.replace('-',' ').toUpperCase()}</p><h1 data-sanity={editorField(Astro.locals,doc,'title')}>{doc.title || 'Sense títol'}</h1>{doc.publishedAt&&<p class="muted">{new Date(doc.publishedAt).toLocaleDateString('ca-ES',{timeZone:'UTC',dateStyle:'long'})}</p>}{(doc._type!=='post'||Astro.locals.editorPreview)&&doc.summary&&<p class="lead" data-sanity={editorField(Astro.locals,doc,'summary')}>{doc.summary}</p>}</section>
 {related.length>0&&<nav class="wrap subnav" aria-label="En aquesta secció">{related.map(d=><a href={withBase(routeFor(d))}>{d.title}</a>)}</nav>}
 <div class="wrap article-layout"><div>{doc.historical&&<p class="historical-note">Contingut històric. Les dates, els càrrecs i les propostes corresponen al moment de la publicació.</p>}
-{doc._type==='publication'?<PdfReader doc={doc}/>:<><article class="prose" set:html={renderBody(doc.body,docs)}/>
+{doc._type==='publication'?<PdfReader doc={doc}/>:<><article class="prose" data-sanity={editorField(Astro.locals,doc,'body')} set:html={renderBody(doc.body,docs)}/>
+<EditorialBlocks doc={doc} docs={docs}/>
 {(doc.gallery?.length||0)>0&&<div class:list={['content-gallery',{'single':doc.gallery!.length===1}]}>{doc.gallery!.map(image=><figure><a href={withBase(mediaUrl(image))} target="_blank" rel="noopener noreferrer"><img src={withBase(mediaUrl(image))} alt={image.alt||doc.title} loading="lazy"/></a><figcaption>{image.caption||'Imatge de l’arxiu'} · <a href={withBase(mediaUrl(image))} target="_blank" rel="noopener noreferrer">Amplia la imatge ↗</a></figcaption></figure>)}</div>}
 {publications.map(p=><section class="related-document"><h2>{p.title}</h2><a class="text-link" href={withBase(routeFor(p))}>Llegeix el document complet →</a><PdfReader doc={p}/></section>)}</>}
 {doc.sourceUrl&&<p class="source-note">Procedència: web històrica de SOM CANET · <a href={doc.sourceUrl} target="_blank" rel="noopener noreferrer">Consulta la font original ↗</a></p>}

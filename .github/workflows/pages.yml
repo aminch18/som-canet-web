@@ -13,7 +13,9 @@ concurrency:
 jobs:
   build:
     name: Verify and package
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'repository_dispatch' || vars.CONTENT_SOURCE == 'sanity')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
