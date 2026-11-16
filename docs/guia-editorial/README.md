@@ -44,6 +44,6 @@ Les captures són del web de SOM CANET. Et mostren on apareixeran els canvis.
 
 Studio desa automàticament l’**esborrany**. Revisa el títol, la foto i els enllaços a **Edició visual**. Quan estigui llest, prem **Publica**. Això guarda la versió publicada a Sanity.
 
-**Durant les proves**, el prototip públic de GitHub Pages mostra la seva pròpia còpia del contingut. Per veure els canvis de Sanity, fes servir **Edició visual** a l’entorn local de proves. Quan s’activi la connexió amb l’allotjament definitiu, la publicació a Studio iniciarà l’actualització del web.
+**Durant la demostració**, després de publicar a Studio, la persona amb accés a GitHub ha d’executar [Publish to GitHub Pages](https://github.com/aminch18/som-canet-web/actions/workflows/pages.yml) amb **Run workflow** a `main`. Quan l’execució acabi, obre o recarrega la pàgina. Si retires una notícia de prova, torna a executar el workflow.
 
 Si no veus **Edició visual** a l’Studio allotjat, demana a la persona responsable del web quin és l’entorn de proves. Per a les tasques del dia a dia, consulta la [fitxa ràpida](FITXA_RAPIDA.md).

@@ -13,6 +13,6 @@
 
 **Abans de publicar.** Obre **Edició visual** i comprova com queda. Per fer una prova, deixa el contingut com a esborrany.
 
-**Durant les proves.** **Publica** guarda el canvi a Sanity. El prototip públic de GitHub Pages encara mostra la seva pròpia còpia.
+**Durant la demostració.** Després de prémer **Publica**, executa [Publish to GitHub Pages](https://github.com/aminch18/som-canet-web/actions/workflows/pages.yml) a `main` i espera que acabi abans de recarregar el web.
 
 [Obre la guia amb captures del web](README.md)

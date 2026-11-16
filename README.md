@@ -4,9 +4,9 @@ Prototipo multipágina preparado para evolucionar a la web definitiva. Astro gen
 
 ## Estado real
 
-La web compila con una copia local de 78 documentos. El proyecto de prueba de Sanity se creó, recibió la migración inicial y contó con un [Studio alojado](https://aminch18somcanetprev.sanity.studio/). La edición visual se probó en local. Los cambios más recientes del editor están en la copia de trabajo y deben revisarse y versionarse antes de desplegarlos.
+La web compila con una copia local de 78 documentos. El proyecto de prueba de Sanity se creó, recibió la migración inicial y contó con un [Studio alojado](https://aminch18somcanetprev.sanity.studio/). La edición visual se probó en local. El editor actualizado está desplegado en el mismo Studio de prueba.
 
-[GitHub Pages](https://aminch18.github.io/som-canet-web/) es la referencia del prototipo con la copia local. La conexión de la web pública a Sanity, el webhook de Cloudflare Pages y la vista previa alojada siguen pendientes. Consulta el [plan de salida y entrega](SANITY_SETUP.md#salida-y-entrega).
+[GitHub Pages](https://aminch18.github.io/som-canet-web/) está configurado para leer los documentos publicados de Sanity al reconstruir la demo. Tras publicar en Studio, ejecuta manualmente el workflow [Publish to GitHub Pages](https://github.com/aminch18/som-canet-web/actions/workflows/pages.yml). La automatización con webhook y la vista previa alojada siguen pendientes. Consulta el [plan de salida y entrega](SANITY_SETUP.md#salida-y-entrega).
 
 ## Arranque
 
